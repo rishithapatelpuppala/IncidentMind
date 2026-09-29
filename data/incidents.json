@@ -1,0 +1,122 @@
+[
+  {
+    "id": "INC-1001",
+    "title": "Payment Service database connection timeout",
+    "description": "Customers received HTTP 500 errors while attempting to complete payments.",
+    "service": "Payment Service",
+    "environment": "production",
+    "error": "HTTP 500 - Database connection timeout",
+    "symptoms": "Payment requests failed intermittently and database connections reached the configured pool limit.",
+    "root_cause": "Database connection pool exhaustion caused by a connection leak in the payment service.",
+    "resolution": "Increased the connection pool from 50 to 100, restarted the service, and deployed the connection cleanup fix.",
+    "runbook": "payment-db-connection.md"
+  },
+  {
+    "id": "INC-1002",
+    "title": "Authentication JWT validation failures",
+    "description": "Users were unable to log in after the authentication service rejected valid tokens.",
+    "service": "Authentication Service",
+    "environment": "production",
+    "error": "HTTP 401 - Token validation failed",
+    "symptoms": "Large number of valid sessions were rejected after a signing key reached expiration.",
+    "root_cause": "JWT signing key expired.",
+    "resolution": "Rotated the JWT signing key, updated the authentication configuration, and restarted the authentication service.",
+    "runbook": "jwt-key-rotation.md"
+  },
+  {
+    "id": "INC-1003",
+    "title": "Order Service Redis connection failure",
+    "description": "Order creation requests became slow and eventually failed.",
+    "service": "Order Service",
+    "environment": "production",
+    "error": "Redis connection refused",
+    "symptoms": "Cache requests timed out and order API latency increased significantly.",
+    "root_cause": "Redis primary node became unavailable during a maintenance event.",
+    "resolution": "Failed over to the Redis replica and restarted affected application instances.",
+    "runbook": "redis-failover.md"
+  },
+  {
+    "id": "INC-1004",
+    "title": "Inventory database deadlock",
+    "description": "Inventory updates started failing during a high-volume flash sale.",
+    "service": "Inventory Service",
+    "environment": "production",
+    "error": "Database deadlock detected",
+    "symptoms": "Multiple inventory update transactions were rolled back.",
+    "root_cause": "Concurrent transactions acquired database locks in inconsistent order.",
+    "resolution": "Rolled back the problematic deployment and changed transaction lock ordering.",
+    "runbook": "database-deadlock.md"
+  },
+  {
+    "id": "INC-1005",
+    "title": "Notification queue backlog",
+    "description": "Customers experienced delayed email and SMS notifications.",
+    "service": "Notification Service",
+    "environment": "production",
+    "error": "Message queue backlog exceeded threshold",
+    "symptoms": "Queue depth increased continuously and notification processing latency exceeded 20 minutes.",
+    "root_cause": "Notification workers were processing messages slower than the incoming event rate.",
+    "resolution": "Scaled notification workers from 4 to 12 and restarted two unhealthy workers.",
+    "runbook": "notification-queue-backlog.md"
+  },
+  {
+    "id": "INC-1006",
+    "title": "API Gateway upstream timeout",
+    "description": "Several API endpoints returned gateway timeout responses.",
+    "service": "API Gateway",
+    "environment": "production",
+    "error": "HTTP 504 - Upstream request timeout",
+    "symptoms": "Gateway requests exceeded the configured upstream timeout while backend latency increased.",
+    "root_cause": "Order Service response latency increased after an inefficient database query was deployed.",
+    "resolution": "Rolled back the database query change and increased monitoring on backend latency.",
+    "runbook": "gateway-upstream-timeout.md"
+  },
+  {
+    "id": "INC-1007",
+    "title": "Checkout payment provider timeout",
+    "description": "Checkout requests failed when communicating with the external payment provider.",
+    "service": "Checkout Service",
+    "environment": "production",
+    "error": "Payment provider request timeout",
+    "symptoms": "Checkout requests remained pending and eventually returned timeout errors.",
+    "root_cause": "External payment provider experienced elevated response latency.",
+    "resolution": "Enabled retry with exponential backoff and temporarily routed traffic through the secondary payment provider.",
+    "runbook": "payment-provider-failover.md"
+  },
+  {
+    "id": "INC-1008",
+    "title": "User Service database connection exhaustion",
+    "description": "Profile requests returned intermittent server errors.",
+    "service": "User Service",
+    "environment": "production",
+    "error": "Database connection pool exhausted",
+    "symptoms": "Database connections remained active longer than expected and request failures increased.",
+    "root_cause": "A recently deployed code path failed to release database connections.",
+    "resolution": "Rolled back the deployment, restarted the service, and deployed a connection cleanup patch.",
+    "runbook": "database-connection-pool.md"
+  },
+  {
+    "id": "INC-1009",
+    "title": "Shipping API third-party failure",
+    "description": "Shipment creation failed for a portion of customer orders.",
+    "service": "Shipping Service",
+    "environment": "production",
+    "error": "HTTP 503 - Shipping provider unavailable",
+    "symptoms": "Requests to the external courier API returned service unavailable responses.",
+    "root_cause": "Third-party courier API experienced an outage.",
+    "resolution": "Enabled the secondary courier integration and queued failed shipment requests for retry.",
+    "runbook": "shipping-provider-failover.md"
+  },
+  {
+    "id": "INC-1010",
+    "title": "Product Service cache inconsistency",
+    "description": "Customers saw outdated product inventory information.",
+    "service": "Product Service",
+    "environment": "production",
+    "error": "Stale cache data",
+    "symptoms": "Product availability differed between the product page and inventory service.",
+    "root_cause": "Cache invalidation events were not being delivered after inventory updates.",
+    "resolution": "Cleared affected cache entries and repaired the cache invalidation event consumer.",
+    "runbook": "cache-invalidation.md"
+  }
+]
